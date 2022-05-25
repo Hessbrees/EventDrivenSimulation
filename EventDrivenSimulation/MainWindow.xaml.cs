@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,44 +22,51 @@ namespace EventDrivenSimulation
         public MainWindow()
         {
             InitializeComponent();
+            Ball test = new Ball();
+            test.draw();
         }
+
+
+
+
     }
-
-    public class BouncingBalls
-    {
-        public static void main(String[] args)
-        {
-            int n = Int32.Parse(args[0]);
-            for (int i = 0; i < n; i++)
-                ;
-            while (true)
-            {
-
-            }
-        }
-    }
-
     public class Ball
     {
         private double rx, ry;
         private double vx, vy;
-        private double radius;
-        public Ball() { }
+        private readonly double radius;
+        public Ball()
+        {
+            rx = 10;
+            ry = 10;
+            vx = 15;
+            vy = 15;
+            radius = 10;
+        }
 
         public void move(double dt)
         {
-            if((rx+vx*dt<radius)||(rx+vx*dt>1.0 - radius)) { vx = -vx; }
-            if((ry+vy*dt<radius)||(ry+vy*dt>1.0 - radius)) { vy = -vy; }
+            if ((rx + vx * dt < radius) || (rx + vx * dt > 1.0 - radius)) { vx = -vx; }
+            if ((ry + vy * dt < radius) || (ry + vy * dt > 1.0 - radius)) { vy = -vy; }
             rx = rx + vx * dt;
             ry = ry + vy * dt;
 
         }
         public void draw()
         {
-            //stddraw
+            MainWindow win = new MainWindow();
+            Ellipse elp = new Ellipse();
+            SolidColorBrush BlueBrush = new SolidColorBrush();
+            SolidColorBrush BlackBrush = new SolidColorBrush();
+            BlueBrush.Color = Colors.Blue;
+            BlackBrush.Color = Colors.Black;
+            elp.Fill = BlueBrush;
+            elp.Stroke = BlackBrush;
+            elp.Width = 10;
+            elp.Height = 10;
+            win.MainLayout.Children.Add(elp);
+
         }
 
-
     }
-
 }
