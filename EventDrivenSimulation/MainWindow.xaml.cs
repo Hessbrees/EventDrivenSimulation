@@ -22,7 +22,7 @@ namespace EventDrivenSimulation
     public partial class MainWindow : Window
     {
         DispatcherTimer Timer = new DispatcherTimer();
-        static int n = 1;
+        static int n = 10;
         Ball[] balls = new Ball[n];
         int time = 0;
         public MainWindow()
@@ -30,7 +30,7 @@ namespace EventDrivenSimulation
             InitializeComponent();
 
             Timer.Tick += new EventHandler(TimeClick);
-            Timer.Interval = new TimeSpan(0, 0, 1);
+            Timer.Interval = new TimeSpan(10000);
             Timer.Start();
         }
 
@@ -41,7 +41,6 @@ namespace EventDrivenSimulation
         }
         public void BouncingBalls(int time)
         {
-
             if(time == 0)
             {
                 for (int i = 0; i < n; i++)
@@ -51,7 +50,7 @@ namespace EventDrivenSimulation
             MainLayout.Children.Clear();
             for (int i = 0; i < n; i++)
             {
-                balls[i].move(5);
+                balls[i].move(0.5);
                 balls[i].draw(this);
             }
         }
@@ -65,8 +64,9 @@ namespace EventDrivenSimulation
         public Ball()
         {
             // rx/ry 0-480
-            rx = 0;
-            ry = 0;
+            Random rd = new Random();
+            rx = rd.NextDouble()*480;
+            ry = rd.NextDouble()*480;
             vx = 15;
             vy = 15;
             radius = 10;
@@ -74,8 +74,8 @@ namespace EventDrivenSimulation
 
         public void move(double dt)
         {
-            //if ((rx + vx * dt < radius) || (rx + vx * dt > 480 - radius)) { vx = -vx; }
-            //if ((ry + vy * dt < radius) || (ry + vy * dt > 480 - radius)) { vy = -vy; }
+            if ((rx + vx * dt < radius) || (rx + vx * dt > 480 - radius)) { vx = -vx; }
+            if ((ry + vy * dt < radius) || (ry + vy * dt > 480 - radius)) { vy = -vy; }
             rx = rx + vx * dt;
             ry = ry + vy * dt;
         }
