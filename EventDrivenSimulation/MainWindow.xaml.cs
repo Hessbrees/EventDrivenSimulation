@@ -27,6 +27,26 @@ namespace EventDrivenSimulation
 
 
         }
+
+        public void BouncingBalls()
+        {
+            int n = 10;
+            Ball[] balls = new Ball[n];
+            for (int i = 0; i < n; i++)
+                balls[i] = new Ball();
+            while(true)
+            {
+                MainLayout.Children.Clear();
+                for(int i =0;i<n;i++)
+                {
+                    balls[i].move(0.5);
+                    balls[i].draw(this);
+                }
+
+            }
+
+        }
+
     }
     public class Ball
     {
@@ -35,8 +55,9 @@ namespace EventDrivenSimulation
         private readonly double radius;
         public Ball()
         {
-            rx = 450;
-            ry = 450;
+            // rx/ry 0-480
+            rx = 0;
+            ry = 0;
             vx = 15;
             vy = 15;
             radius = 10;
