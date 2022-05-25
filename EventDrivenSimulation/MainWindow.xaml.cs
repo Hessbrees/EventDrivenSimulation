@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace EventDrivenSimulation
 {
@@ -19,32 +21,39 @@ namespace EventDrivenSimulation
     /// </summary>
     public partial class MainWindow : Window
     {
+        DispatcherTimer Timer = new DispatcherTimer();
+        static int n = 1;
+        Ball[] balls = new Ball[n];
+        int time = 0;
         public MainWindow()
         {
             InitializeComponent();
-            Ball test = new Ball();
-            test.draw(this);
 
-
+            Timer.Tick += new EventHandler(TimeClick);
+            Timer.Interval = new TimeSpan(0, 0, 1);
+            Timer.Start();
         }
 
-        public void BouncingBalls()
+        private void TimeClick(object sender, EventArgs e)
         {
-            int n = 10;
-            Ball[] balls = new Ball[n];
-            for (int i = 0; i < n; i++)
-                balls[i] = new Ball();
-            while(true)
-            {
-                MainLayout.Children.Clear();
-                for(int i =0;i<n;i++)
-                {
-                    balls[i].move(0.5);
-                    balls[i].draw(this);
-                }
+            BouncingBalls(time);
+            time++;
+        }
+        public void BouncingBalls(int time)
+        {
 
+            if(time == 0)
+            {
+                for (int i = 0; i < n; i++)
+                    balls[i] = new Ball();
             }
 
+            MainLayout.Children.Clear();
+            for (int i = 0; i < n; i++)
+            {
+                balls[i].move(5);
+                balls[i].draw(this);
+            }
         }
 
     }
@@ -65,11 +74,10 @@ namespace EventDrivenSimulation
 
         public void move(double dt)
         {
-            if ((rx + vx * dt < radius) || (rx + vx * dt > 1.0 - radius)) { vx = -vx; }
-            if ((ry + vy * dt < radius) || (ry + vy * dt > 1.0 - radius)) { vy = -vy; }
+            //if ((rx + vx * dt < radius) || (rx + vx * dt > 480 - radius)) { vx = -vx; }
+            //if ((ry + vy * dt < radius) || (ry + vy * dt > 480 - radius)) { vy = -vy; }
             rx = rx + vx * dt;
             ry = ry + vy * dt;
-
         }
         public void draw(MainWindow main)
         {
@@ -79,8 +87,8 @@ namespace EventDrivenSimulation
             SolidColorBrush BlackBrush = new SolidColorBrush();
             elp.HorizontalAlignment = HorizontalAlignment.Left;
             elp.VerticalAlignment = VerticalAlignment.Top;
-            elp.Width = 20;
-            elp.Height = 20;
+            elp.Width = radius*2;
+            elp.Height = radius*2;
             BlueBrush.Color = Colors.Blue;
             BlackBrush.Color = Colors.Black;
             elp.Stroke = BlackBrush;
