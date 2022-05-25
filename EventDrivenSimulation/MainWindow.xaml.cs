@@ -25,12 +25,14 @@ namespace EventDrivenSimulation
         static int n = 10;
         Ball[] balls = new Ball[n];
         int time = 0;
+        Random rd = new Random();
+
         public MainWindow()
         {
             InitializeComponent();
 
             Timer.Tick += new EventHandler(TimeClick);
-            Timer.Interval = new TimeSpan(10000);
+            Timer.Interval = new TimeSpan(100000);
             Timer.Start();
         }
 
@@ -41,10 +43,14 @@ namespace EventDrivenSimulation
         }
         public void BouncingBalls(int time)
         {
-            if(time == 0)
+            if (time == 0)
             {
                 for (int i = 0; i < n; i++)
-                    balls[i] = new Ball();
+                {
+                    double rx = rd.NextDouble() * 480;
+                    double ry = rd.NextDouble() * 480;
+                    balls[i] = new Ball(rx,ry);
+                }    
             }
 
             MainLayout.Children.Clear();
@@ -61,27 +67,25 @@ namespace EventDrivenSimulation
         private double rx, ry;
         private double vx, vy;
         private readonly double radius;
-        public Ball()
+        public Ball(double _rx, double _ry)
         {
-            // rx/ry 0-480
-            Random rd = new Random();
-            rx = rd.NextDouble()*480;
-            ry = rd.NextDouble()*480;
-            vx = 15;
-            vy = 15;
+            rx = _rx;
+            ry = _ry;
+            vx = 5;
+            vy = 5;
             radius = 10;
         }
 
         public void move(double dt)
         {
-            if ((rx + vx * dt < radius) || (rx + vx * dt > 480 - radius)) { vx = -vx; }
-            if ((ry + vy * dt < radius) || (ry + vy * dt > 480 - radius)) { vy = -vy; }
+            // change radius to 0
+            if ((rx + vx * dt < 0) || (rx + vx * dt > 500 - radius*2)) { vx = -vx; }
+            if ((ry + vy * dt < 0) || (ry + vy * dt > 500 - radius*2)) { vy = -vy; }
             rx = rx + vx * dt;
             ry = ry + vy * dt;
         }
         public void draw(MainWindow main)
         {
-            
             Ellipse elp = new Ellipse();
             SolidColorBrush BlueBrush = new SolidColorBrush();
             SolidColorBrush BlackBrush = new SolidColorBrush();
