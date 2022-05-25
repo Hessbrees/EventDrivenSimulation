@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:EventDrivenSimulation"
         mc:Ignorable="d"
-        Title="MainWindow" Height="500" Width="500">
-    <Grid x:Name="MainLayout"/>
+        Title="MainWindow" Height="600" Width="600" ResizeMode = "NoResize" Topmost="False" WindowState="Normal">
+
+    <Grid x:Name="MainLayout" Height="500" Width="500" Background="#FFD5EAD3"/>
 </Window>

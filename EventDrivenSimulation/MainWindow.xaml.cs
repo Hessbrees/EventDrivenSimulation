@@ -23,12 +23,10 @@ namespace EventDrivenSimulation
         {
             InitializeComponent();
             Ball test = new Ball();
-            test.draw();
+            test.draw(this);
+
+
         }
-
-
-
-
     }
     public class Ball
     {
@@ -37,8 +35,8 @@ namespace EventDrivenSimulation
         private readonly double radius;
         public Ball()
         {
-            rx = 10;
-            ry = 10;
+            rx = 450;
+            ry = 450;
             vx = 15;
             vy = 15;
             radius = 10;
@@ -52,19 +50,23 @@ namespace EventDrivenSimulation
             ry = ry + vy * dt;
 
         }
-        public void draw()
+        public void draw(MainWindow main)
         {
-            MainWindow win = new MainWindow();
+            
             Ellipse elp = new Ellipse();
             SolidColorBrush BlueBrush = new SolidColorBrush();
             SolidColorBrush BlackBrush = new SolidColorBrush();
+            elp.HorizontalAlignment = HorizontalAlignment.Left;
+            elp.VerticalAlignment = VerticalAlignment.Top;
+            elp.Width = 20;
+            elp.Height = 20;
             BlueBrush.Color = Colors.Blue;
             BlackBrush.Color = Colors.Black;
-            elp.Fill = BlueBrush;
             elp.Stroke = BlackBrush;
-            elp.Width = 10;
-            elp.Height = 10;
-            win.MainLayout.Children.Add(elp);
+            elp.StrokeThickness = 1;
+            elp.Fill = BlueBrush;
+            elp.Margin = new Thickness(rx, ry, 0, 0);
+            main.MainLayout.Children.Add(elp);
 
         }
 
