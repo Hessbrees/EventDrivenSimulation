@@ -8,10 +8,8 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace EventDrivenSimulation
@@ -51,8 +49,8 @@ namespace EventDrivenSimulation
                     double ry = rd.NextDouble() * 480;
                     double vx = (rd.NextDouble() - rd.NextDouble()) * 0.5;
                     double vy = (rd.NextDouble() - rd.NextDouble()) * 0.5;
-                    balls[i] = new Particle(rx,ry,vx,vy);
-                }    
+                    balls[i] = new Particle(rx, ry, vx, vy);
+                }
             }
 
             MainLayout.Children.Clear();
@@ -64,130 +62,130 @@ namespace EventDrivenSimulation
         }
 
     }
-    public class Particle
+
+    public class CollisionSystem
     {
-        private double rx, ry;
-        private double vx, vy;
-        private readonly double radius;
-        private readonly double mass;
-        private int count;
-        public Particle(double _rx, double _ry,double _vx, double _vy)
+        private static readonly double HZ = 0.5;    // number of redraw events per clock tick
+
+        private MinPQ<Event> pq;          // the priority queue
+        private double t = 0.0;          // simulation clock time
+        private Particle[] particles;     // the array of particles
+
+        public CollisionSystem(Particle[] particles)
         {
-            rx = _rx;
-            ry = _ry;
-            vx = _vx;
-            vy = _vy;
-            radius = 10;
-            mass = 0.5;
+            this.particles = (Particle[])particles.Clone();  // defensive copy
         }
 
-        public void move()
+        // updates priority queue with all new events for particle a
+        private void predict(Particle a, double limit)
         {
-            // change radius to 0
-            //if ((rx + vx * dt < 0) || (rx + vx * dt > 500 - radius*2)) { vx = -vx; }
-            //if ((ry + vy * dt < 0) || (ry + vy * dt > 500 - radius*2)) { vy = -vy; }
-            rx = rx + vx;
-            ry = ry + vy;
+            if (a == null) return;
+
+            // particle-particle collisions
+            for (int i = 0; i < particles.Length; i++)
+            {
+                double dt = a.timeToHit(particles[i]);
+                if (t + dt <= limit)
+                    pq.insert(new Event(t + dt, a, particles[i]));
+            }
+
+            // particle-wall collisions
+            double dtX = a.timeToHitVerticalWall();
+            double dtY = a.timeToHitHorizontalWall();
+            if (t + dtX <= limit) pq.insert(new Event(t + dtX, a, null));
+            if (t + dtY <= limit) pq.insert(new Event(t + dtY, null, a));
         }
 
-        public void draw(MainWindow main)
+        // redraw all particles
+        //Change this.
+        private void redraw(double limit)
         {
-            Ellipse elp = new Ellipse();
-            SolidColorBrush BlueBrush = new SolidColorBrush();
-            SolidColorBrush BlackBrush = new SolidColorBrush();
-            elp.HorizontalAlignment = HorizontalAlignment.Left;
-            elp.VerticalAlignment = VerticalAlignment.Top;
-            elp.Width = radius*2;
-            elp.Height = radius*2;
-            BlueBrush.Color = Colors.Blue;
-            BlackBrush.Color = Colors.Black;
-            elp.Stroke = BlackBrush;
-            elp.StrokeThickness = 1;
-            elp.Fill = BlueBrush;
-            elp.Margin = new Thickness(rx, ry, 0, 0);
-            main.MainLayout.Children.Add(elp);
-
-        }
-        #region TimeToHit
-        public double timeToHit(Particle that)
-        {
-            if (this == that) return double.PositiveInfinity;
-            double dx = that.rx - this.rx;
-            double dy = that.ry - this.ry;
-            double dvx = that.vx - this.vx;
-            double dvy = that.vy - this.vy;
-            double dvdr = dx * dvx + dy * dvy;
-            if (dvdr > 0) return double.PositiveInfinity;
-            double dvdv = dvx * dvx + dvy * dvy;
-            if (dvdv == 0) return double.PositiveInfinity;
-            double drdr = dx * dx + dy * dy;
-            double sigma = this.radius + that.radius;
-            double d = (dvdr * dvdr) - dvdv * (drdr - sigma * sigma);
-            // if (drdr < sigma*sigma) StdOut.println("overlapping particles");
-            if (d < 0) return double.PositiveInfinity;
-            return -(dvdr + Math.Sqrt(d)) / dvdv;
-        }
-        public double timeToHitVerticalWall()
-        {
-            if (vx > 0) return (500 - rx - radius*2) / vx;
-            else if (vx < 0) return (radius*2 - rx) / vx;
-            else return double.PositiveInfinity;
+            StdDraw.clear();
+            for (int i = 0; i < particles.length; i++)
+            {
+                particles[i].draw();
+            }
+            StdDraw.show();
+            StdDraw.pause(20);
+            if (t < limit)
+            {
+                pq.insert(new Event(t + 1.0 / HZ, null, null));
+            }
         }
 
-        public double timeToHitHorizontalWall()
+        public void simulate(double limit)
         {
-            if (vy > 0) return (500 - ry - radius*2) / vy;
-            else if (vy < 0) return (radius*2 - ry) / vy;
-            else return double.PositiveInfinity;
-        }
-        #endregion
 
-        #region bounceOff
-        public void bounceOff(Particle that)
+            // initialize PQ with collision events and redraw event
+            pq = new MinPQ<Event>();
+            for (int i = 0; i < particles.Length; i++)
+            {
+                predict(particles[i], limit);
+            }
+            pq.insert(new Event(0, null, null));        // redraw event
+
+
+            // the main event-driven simulation loop
+            while (!pq.isEmpty())
+            {
+
+                // get impending event, discard if invalidated
+                Event e = pq.delMin();
+                if (!e.isValid()) continue;
+                Particle a = e.a;
+                Particle b = e.b;
+
+                // physical collision, so update positions, and then simulation clock
+                for (int i = 0; i < particles.length; i++)
+                    particles[i].move(e.time - t);
+                t = e.time;
+
+                // process event
+                if (a != null && b != null) a.bounceOff(b);              // particle-particle collision
+                else if (a != null && b == null) a.bounceOffVerticalWall();   // particle-wall collision
+                else if (a == null && b != null) b.bounceOffHorizontalWall(); // particle-wall collision
+                else if (a == null && b == null) redraw(limit);               // redraw event
+
+                // update the priority queue with new collisions involving a or b
+                predict(a, limit);
+                predict(b, limit);
+            }
+        }
+
+        private class Event : IComparable<Event>
         {
-            double dx = that.rx - this.rx;
-            double dy = that.ry - this.ry;
-            double dvx = that.vx - this.vx;
-            double dvy = that.vy - this.vy;
-            double dvdr = dx * dvx + dy * dvy;             // dv dot dr
-            double dist = this.radius + that.radius;   // distance between particle centers at collison
+            private readonly double time;         // time that event is scheduled to occur
+            private readonly Particle a, b;       // particles involved in event, possibly null
+            private readonly int countA, countB;  // collision counts at event creation
 
-            // magnitude of normal force
-            double magnitude = 2 * this.mass * that.mass * dvdr / ((this.mass + that.mass) * dist);
 
-            // normal force, and in x and y directions
-            double fx = magnitude * dx / dist;
-            double fy = magnitude * dy / dist;
+            // create a new event to occur at time t involving a and b
+            public Event(double t, Particle a, Particle b)
+            {
+                this.time = t;
+                this.a = a;
+                this.b = b;
+                if (a != null) countA = a.Count();
+                else countA = -1;
+                if (b != null) countB = b.Count();
+                else countB = -1;
+            }
 
-            // update velocities according to normal force
-            this.vx += fx / this.mass;
-            this.vy += fy / this.mass;
-            that.vx -= fx / that.mass;
-            that.vy -= fy / that.mass;
+            // compare times when two events will occur
+            public int CompareTo(Event that)
+            {
+                return this.CompareTo(that);
+            }
 
-            // update collision counts
-            this.count++;
-            that.count++;
+            // has any collision occurred between when event was created and now?
+            public bool isValid()
+            {
+                if (a != null && a.Count() != countA) return false;
+                if (b != null && b.Count() != countB) return false;
+                return true;
+            }
+
         }
 
-        public void bounceOffVerticalWall()
-        {
-            vx = -vx;
-            count++;
-        }
-        public void bounceOffHorizontalWall()
-        {
-            vy = -vy;
-            count++;
-        }
-        #endregion
-        public double kineticEnergy()
-        {
-            return 0.5 * mass * (vx * vx + vy * vy);
-        }
-        public int Count()
-        {
-            return count;
-        }
     }
 }
