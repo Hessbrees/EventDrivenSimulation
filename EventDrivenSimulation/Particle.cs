@@ -22,7 +22,7 @@ namespace EventDrivenSimulation
             mass = 0.5;
         }
 
-        public void move()
+        public void move(double dt)
         {
             // change radius to 0
             //if ((rx + vx * dt < 0) || (rx + vx * dt > 500 - radius*2)) { vx = -vx; }
